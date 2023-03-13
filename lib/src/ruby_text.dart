@@ -17,8 +17,8 @@ class RubySpanWidget extends HookWidget {
   }) : super(key: key);
 
   final RubyTextData data;
-  final TextStyle Function(int)? indexStyle;
-  final void Function(int)? indexAction;
+  final TextStyle Function(int, String)? indexStyle;
+  final void Function(int, String)? indexAction;
 
   @override
   Widget build(BuildContext context) {
@@ -107,10 +107,11 @@ class RubySpanWidget extends HookWidget {
           children: data.text.characters.mapIndexed((index, character) {
             return TextSpan(
               text: character,
-              style: effectiveTextStyle.merge(indexStyle?.call(index)),
+              style:
+                  effectiveTextStyle.merge(indexStyle?.call(index, character)),
               recognizer: TapGestureRecognizer()
                 ..onTapDown = (details) async {
-                  indexAction?.call(index);
+                  indexAction?.call(index, character);
                 },
             );
           }).toList(),
@@ -151,8 +152,8 @@ class RubyText extends StatelessWidget {
   final bool? softWrap;
   final TextOverflow? overflow;
   final int? maxLines;
-  final TextStyle Function(int)? indexStyle;
-  final void Function(int)? indexAction;
+  final TextStyle Function(int, String)? indexStyle;
+  final void Function(int, String)? indexAction;
 
   @override
   Widget build(BuildContext context) => Text.rich(
