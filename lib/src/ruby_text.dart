@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:tuple/tuple.dart';
@@ -7,9 +9,16 @@ import 'ruby_text_data.dart';
 typedef _BuildRubySpanResult = Tuple2<TextStyle, TextStyle>;
 
 class RubySpanWidget extends HookWidget {
-  const RubySpanWidget(this.data, {Key? key}) : super(key: key);
+  const RubySpanWidget(
+    this.data, {
+    Key? key,
+    this.indexStyle,
+    this.indexAction,
+  }) : super(key: key);
 
   final RubyTextData data;
+  final TextStyle Function(int)? indexStyle;
+  final void Function(int)? indexAction;
 
   @override
   Widget build(BuildContext context) {
@@ -93,8 +102,19 @@ class RubySpanWidget extends HookWidget {
     }
 
     texts.add(
-      Text(
-        data.text,
+      Text.rich(
+        TextSpan(
+          children: data.text.characters.mapIndexed((index, character) {
+            return TextSpan(
+              text: character,
+              style: effectiveTextStyle.merge(indexStyle?.call(index)),
+              recognizer: TapGestureRecognizer()
+                ..onTapDown = (details) async {
+                  indexAction?.call(index);
+                },
+            );
+          }).toList(),
+        ),
         textAlign: TextAlign.center,
         style: effectiveTextStyle,
       ),
@@ -118,6 +138,8 @@ class RubyText extends StatelessWidget {
     this.softWrap,
     this.overflow,
     this.maxLines,
+    this.indexStyle,
+    this.indexAction,
   }) : super(key: key);
 
   final List<RubyTextData> data;
@@ -129,6 +151,8 @@ class RubyText extends StatelessWidget {
   final bool? softWrap;
   final TextOverflow? overflow;
   final int? maxLines;
+  final TextStyle Function(int)? indexStyle;
+  final void Function(int)? indexAction;
 
   @override
   Widget build(BuildContext context) => Text.rich(
@@ -142,6 +166,8 @@ class RubyText extends StatelessWidget {
                       rubyStyle: rubyStyle,
                       textDirection: textDirection,
                     ),
+                    indexAction: indexAction,
+                    indexStyle: indexStyle,
                   ),
                 ),
               )
